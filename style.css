@@ -1,0 +1,544 @@
+:root {
+    --bg-dark: #050505;
+    --bg-panel: #0a0a0f;
+    --accent-primary: #00ff9d;
+    /* Neon Green - Success */
+    --accent-secondary: #ff0055;
+    /* Neon Red - Alert/Loss */
+    --accent-gold: #ffd700;
+    /* Gold - Premium */
+    --accent-purple: #bd00ff;
+    /* Purple - Rare/Void */
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-heading: 'Rajdhani', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-dark);
+    color: #fff;
+    font-family: var(--font-heading);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+body::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 50; /* Reduced from 100 to be below ui-controls (z-index: 100) */
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    /* Ensure ui-controls is never cut off */
+    align-items: stretch;
+    /* Ensure flex items don't overflow */
+    min-height: 0;
+    /* Prevent any scrolling that might cause ui-controls to be cut */
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+/* Ensure ui-controls is always at the bottom and visible - merged into main definition below */
+
+/* FOMO Header - Constantly visible stressor */
+#ui-header {
+    height: 60px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    z-index: 10;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fomo-ticker {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-gold);
+    animation: flash 2s infinite;
+}
+
+.resource-bar {
+    display: flex;
+    gap: 15px;
+}
+
+.res-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.add-btn {
+    background: var(--accent-gold);
+    color: #000;
+    border: none;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-weight: bold;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+/* Skinner Box Canvas */
+#game-canvas {
+    flex: 1 1 auto; /* Allow shrinking and growing */
+    width: 100%;
+    touch-action: none;
+    position: relative;
+    z-index: 1;
+    min-height: 0; /* Allow flex shrinking */
+    max-height: calc(100vh - 60px - 35%); /* Reserve space for header and ui-controls */
+    overflow: hidden; /* Prevent canvas from covering UI */
+}
+
+/* Overlay Layer */
+#overlay-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 50;
+}
+
+/* Illusion of Control UI */
+#ui-controls {
+    height: 35%;
+    min-height: 200px;
+    max-height: 400px;
+    background: var(--bg-panel);
+    /* Removed green box-shadow to prevent appearing/disappearing bar */
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+    display: flex !important; /* Force display */
+    flex-direction: column;
+    z-index: 200 !important; /* Higher than canvas and overlay */
+    position: relative; /* Relative to parent container */
+    flex-shrink: 0 !important; /* Prevent shrinking */
+    flex-grow: 0 !important; /* Prevent growing */
+    visibility: visible !important; /* Always visible */
+    opacity: 1 !important; /* Always opaque */
+    order: 999; /* Always last in flex order */
+    margin-top: auto; /* Push to bottom */
+    /* Ensure it stays within viewport */
+    align-self: stretch;
+    width: 100%;
+    /* Prevent any transforms or animations that might hide it */
+    transform: none !important;
+    will-change: auto;
+}
+
+/* Removed green top border completely to prevent appearing/disappearing issue */
+/* The bar was causing visual glitches, so it's been removed */
+
+.tab-nav {
+    display: flex;
+    height: 50px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: none;
+    color: #888;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.tab-btn:hover {
+    background: rgba(0, 255, 157, 0.1);
+    color: #aaa;
+}
+
+.tab-btn.active {
+    color: var(--accent-primary);
+    border-bottom: 3px solid var(--accent-primary);
+    text-shadow: 0 0 10px var(--accent-primary);
+}
+
+.tab-btn.warning {
+    color: var(--accent-secondary);
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Manual Override - The dopamine button */
+#manual-override-btn {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(45deg, var(--accent-primary), #00aa6e);
+    border: none;
+    color: #000;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+    active: scale(0.98);
+}
+
+.pulse-btn {
+    animation: pulse 1.5s infinite;
+}
+
+.stat-readout {
+    display: flex;
+    justify-content: space-between;
+}
+
+.stat label {
+    display: block;
+    font-size: 10px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.stat span {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: #fff;
+}
+
+.decaying {
+    color: var(--accent-secondary) !important;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7);
+    }
+
+    70% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 10px rgba(0, 255, 157, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
+    }
+}
+
+@keyframes flash {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Visual Feedback Numbers */
+.damage-number {
+    position: absolute;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    pointer-events: none;
+    animation: floatUp 1s forwards;
+    text-shadow: 0 0 2px black;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) scale(1.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-50px) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* Combo Display */
+#combo-display {
+    animation: comboPulse 0.5s ease-in-out;
+}
+
+@keyframes comboPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.1);
+    }
+}
+
+/* Upgrade Items */
+.upgrade-item {
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.upgrade-item:hover {
+    background: rgba(0, 255, 157, 0.05) !important;
+    border-color: var(--accent-primary) !important;
+}
+
+.buy-btn {
+    transition: all 0.2s;
+}
+
+.buy-btn:hover {
+    background: rgba(0, 255, 157, 0.2) !important;
+    transform: scale(1.02);
+}
+
+.buy-btn:active {
+    transform: scale(0.98);
+}
+
+/* Skill Buttons */
+.skill-btn {
+    transition: all 0.2s;
+}
+
+.skill-btn:hover:not(:disabled) {
+    background: rgba(0, 255, 157, 0.1) !important;
+    border-color: var(--accent-primary) !important;
+    transform: scale(1.05);
+}
+
+.skill-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .tab-btn {
+        font-size: 11px;
+        padding: 5px;
+    }
+    
+    #manual-override-btn {
+        padding: 15px;
+        font-size: 16px;
+    }
+    
+    .stat span {
+        font-size: 14px;
+    }
+    
+    #combo-display {
+        font-size: 12px;
+        top: 60px;
+    }
+}
+
+/* Scrollbar Styling */
+.tab-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: #0a0a0f;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+    background: #00cc7a;
+}
+
+/* Glow Effects */
+.pulse-btn {
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Notification Toast */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-panel);
+    border: 1px solid var(--accent-primary);
+    padding: 15px 20px;
+    border-radius: 5px;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+    max-width: 300px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Theme transition */
+* {
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+/* Improved button hover effects */
+button:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:not(:disabled):active {
+    transform: translateY(0);
+}
+
+/* Smooth number transitions */
+.stat span, .res-item span {
+    transition: color 0.2s;
+}
+
+/* Loading spinner */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--accent-primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Guild System Styles */
+#guild-container {
+    animation: fadeIn 0.3s ease-in;
+}
+
+#player-guild-info {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* MiniGame System Styles */
+#minigame-container {
+    animation: fadeIn 0.3s ease-in;
+}
+
+#game-grid > div {
+    transition: background 0.2s, transform 0.1s;
+}
+
+#game-grid > div:hover {
+    transform: scale(1.05);
+}
+
+#game-grid > div:active {
+    transform: scale(0.95);
+}
+
+/* PvP System Styles */
+#pvp-container {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.battle-btn:not(:disabled):hover {
+    background: var(--accent-secondary) !important;
+    box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+}
+
+/* Streak Display */
+#streak-display {
+    animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+    0%, 100% {
+        text-shadow: 0 0 5px var(--accent-gold);
+    }
+    50% {
+        text-shadow: 0 0 15px var(--accent-gold), 0 0 25px var(--accent-gold);
+    }
+}
+
+/* Analytics System Styles */
+#analytics-container {
+    animation: fadeIn 0.3s ease-in;
+}
+
+#analytics-content > div {
+    transition: transform 0.2s;
+}
+
+#analytics-content > div:hover {
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

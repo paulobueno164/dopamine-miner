@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DOPAMINE MINER: VOID PROTOCOL</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div id="game-container">
+        <!-- Social/FOMO Header -->
+        <div id="ui-header">
+            <div class="fomo-ticker" id="global-boost-timer">GLOBAL EVENT: +50% LUCK [04:21]</div>
+            <div class="resource-bar">
+                <div class="res-item">
+                    <span class="icon">💎</span>
+                    <span id="premium-currency">0</span>
+                    <button class="add-btn">+</button>
+                </div>
+                <div class="res-item">
+                    <span class="icon">⚡</span>
+                    <span id="energy">100/100</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Canvas Layer (The Skinner Box) -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Overlay for "Significant Events" (Loss Aversion / Reward) -->
+        <div id="overlay-layer"></div>
+
+        <!-- The Control Deck (Illusion of Control) -->
+        <div id="ui-controls">
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="mine">MINING</button>
+                <button class="tab-btn" data-tab="upgrades">SYSTEMS</button>
+                <button class="tab-btn" data-tab="gacha">VOID</button>
+                <button class="tab-btn" data-tab="support">SUPPORT</button>
+                <button class="tab-btn warning" data-tab="social">RANK (99+)</button>
+            </div>
+
+            <div class="tab-content active" id="tab-mine">
+                <div class="stat-readout">
+                    <div class="stat">
+                        <label>ENTROPY/SEC</label>
+                        <span id="dps-display">0</span>
+                    </div>
+                    <div class="stat">
+                        <label>STABILITY</label>
+                        <span id="stability-display" class="decaying">100%</span>
+                    </div>
+                </div>
+                <!-- The "Click" mechanism for manual input -->
+                <button id="manual-override-btn" class="pulse-btn">MANUAL OVERRIDE</button>
+            </div>
+
+            <div class="tab-content" id="tab-upgrades">
+                <div id="upgrade-list"></div>
+            </div>
+
+            <div class="tab-content" id="tab-gacha">
+                <!-- Injected by JS -->
+            </div>
+
+            <div class="tab-content" id="tab-support">
+                <!-- Drone System Interface -->
+            </div>
+
+            <div class="tab-content" id="tab-social">
+                <div id="leaderboard"></div>
+                <div id="black-market"></div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="src/main.js"></script>
+</body>
+
+</html>
